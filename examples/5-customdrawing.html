@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// declare variables
+let C, Cim, gm, meter
+let trackMemory = 500, trackResolution = 10, trajectory = []
+
+
+function initialize(){
+
+	const fs = [100,100]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+// same as in the last example
+function setup( field_size, configuration_options ){
+
+	
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,100]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	C.add( new CPM.PerimeterConstraint( { LAMBDA_P : [0,2], P : [0,260] } ) )
+	C.add( new CPM.ActivityConstraint( {
+		LAMBDA_ACT : [0,500],
+		MAX_ACT : [0,30],
+		ACT_MEAN : "geometric"
+	} ) )
+	Cim = new CPM.Canvas( C, { zoom : 2 } )
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	gm.seedCell( 1 )
+}
+
+function draw(){
+
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	Cim.drawActivityValues( 1 )
+	
+	// Draw the trajectory
+	// note that we can use any drawing methods from HTML canvas 
+	// (https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API),
+	// where we can access the 'context' in Cim.ctx:
+	const ctx = Cim.ctx
+	
+	// settings for drawing the trajectories
+	ctx.globalAlpha = 0.8
+	ctx.strokeStyle="#0000EE"
+	ctx.lineWidth = 3
+	
+	// draw the trajectory from beginning to end (but it needs to have at least
+	// two coordinates stored.)
+	ctx.beginPath()
+	if( trajectory.length >= 2 ){
+		// we must take into account the zoom-level at which we are drawing
+		let start = [trajectory[0][0]*Cim.zoom,trajectory[0][1]*Cim.zoom]
+		ctx.moveTo( start[0],start[1] )
+		
+		for( let t = 1; t < trajectory.length; t++ ){
+			let end = [trajectory[t][0]*Cim.zoom,trajectory[t][1]*Cim.zoom]
+			// don't draw if we are crossing the periodic boundary because that would
+			// look very messy (try it by setting the if statement to if(true) ).
+			if( ( Math.abs( start[0]-end[0] ) < Math.floor( C.extents[0]/2 ) ) && ( Math.abs( start[1]-end[1] ) < Math.floor( C.extents[1]/2 ) ) ){
+				ctx.lineTo( end[0],end[1])
+				ctx.moveTo( end[0],end[1])
+				start = end.slice()
+			} else {
+				ctx.moveTo( end[0],end[1])
+				start = end.slice()
+			}
+			//ctx.lineTo(  )
+		}
+	}
+
+	ctx.stroke()
+	ctx.globalAlpha = 1	
+	
+}
+
+// update the trajectory memory
+function updateTrajectories(){
+	if( C.time % trackResolution == 0 ){
+		const centr = C.getStat( CPM.CentroidsWithTorusCorrection )
+		const cid = Object.keys( centr )[0] // the first cellID
+		trajectory.push( centr[cid] )
+		while( trajectory.length > (trackMemory/trackResolution) ){
+			trajectory.shift() // remove the oldest positions
+		}
+	}
+	
+}
+
+
+function step(){
+	C.timeStep()
+	updateTrajectories()
+	draw() 			
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Drawing on the Canvas</h1>
+ <p>With some creativity we can draw anything we want.</p> 
+</body>
+</html>

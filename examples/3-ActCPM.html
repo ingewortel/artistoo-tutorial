@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// declare variables
+let C, Cim, gm, meter
+
+// This is the same as before, except that the field size is now bigger.
+function initialize(){
+
+	const fs = [200,200]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+
+// same idea as before, but we add two additional constraints.
+function setup( field_size, configuration_options ){
+
+	// same as in the last example
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,100]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	
+	// EXERCISE: Check out:
+	// https://artistoo.net/class/src/hamiltonian/ActivityConstraint.js~ActivityConstraint.html
+	// https://artistoo.net/class/src/hamiltonian/PerimeterConstraint.js~PerimeterConstraint.html
+	// add a perimeter term to the hamiltonian (lambda_p = 2, target perimeter = 260)
+	// and add the term of the Act-CPM (use lambda_act = 500, max_act = 30, and a geometric mean).
+	
+
+	// Our field is a bit bigger so let's reduce the zoom.
+	Cim = new CPM.Canvas( C, { zoom : 2 } )
+	
+	// Nothing new here:
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	// let's start the cell in a different spot every time you refresh the page.
+	// you can access the CPM's field size under the property 'extents'
+	const x = Math.round( Math.random() * C.extents[0] )
+	const y = Math.round( Math.random() * C.extents[1] )
+	gm.seedCellAt( 1, [x,y] )
+}
+
+function draw(){
+
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	
+	// EXERCISE: Check out: https://artistoo.net/class/src/Canvas.js~Canvas.html
+	// can you color the activity in the cell protrusions?
+	
+}
+
+
+// This function has not changed from the last example.
+function step(){
+	C.timeStep() 	
+	draw() 			
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>The Act-CPM</h1>
+ <p>Model of a migrating cell. If you refresh the page, the cell should start 
+ at a different spot. But note that it deforms in the same way, because the random 
+ seed of this simulation is fixed!</p> 
+</body>
+</html>

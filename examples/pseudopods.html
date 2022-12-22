@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// before we start, define our new constraint
+class Dendrite {
+	
+	constructor( DC, cid ){
+				
+		// access to the DendriteConstraint this dendrite belongs to and the CPM
+		this.DC = DC
+		this.C = DC.C
+	
+		const ck = this.C.cellKind( cid )
+		this.kappa_d = DC.cellParameter( "KAPPA_D", cid ) 
+		this.kappa_c = DC.cellParameter( "KAPPA_C", cid ) 
+		this.pret = DC.cellParameter( "P_RET", cid ) 
+		this.pext = DC.cellParameter( "P_EXT", cid )
+		this.cid = cid // cellID of the parent cell.
+	
+		// current direction
+		this.dir = this.initDir()
+		this.positions = []
+		
+		this.timeLeft = 300
+		this.extensionFails = 0
+		
+		// for trying to establish
+		this.initializing = true
+		this.establishFails = 0
+		
+		// a bit hacky, but assign a random color for drawing
+		this.color = Math.floor(Math.random()*16777215).toString(16);
+		
+		this.extending = false
+		this.retracting = false
+		
+	}
+	
+	// initial dir of the dendrite is from von Mises distribution around
+	// target dir of the parent cell
+	initDir(){
+		const parentDir = this.DC.currentDirectionOfCell( this.cid )
+		//console.log( parentDir )
+		return this.sampleVonMises( parentDir, this.kappa_c )
+	}
+	
+	// code based on: 
+	// https://dlwhittenbury.github.io/ds-1-sampling-and-visualising-the-von-mises-distribution.html
+	sampleVonMises( mu, kappa ){
+
+		const a = 1.0 + Math.sqrt(1.0 + 4.0 * Math.pow(kappa,2) )
+		const b = (a - Math.sqrt(2.0 * a)) / (2.0 * kappa)
+		const r = (1.0 + Math.pow(b,2)) / (2.0 * b)
+
+		//Pseudo-random numbers sampled from a uniform distribution [0,1]
+		// use this.C.random() instead of Math.random() because this one has random seed.
+		const U1 = this.C.random()
+		const U2 = this.C.random()
+		const U3 = this.C.random()
+
+		const z = Math.cos(Math.PI * U1)
+		const f = (1.0 + r * z) / (r + z)
+		const c = kappa * (r - f)
+
+		if ( ((c * (2.0 - c) - U2) > 0.0)  | (( Math.log(c/U2) + 1.0 - c) > 0.0) ){
+			const denom = Math.sign( U3 - 0.5 ) * Math.acos(f) + mu
+			let out = denom % (2*Math.PI)
+			if( out < 0 ) out += 2*Math.PI
+			return out
+		} else {
+			return this.sampleVonMises( mu, kappa ) // should be 0 but for some reason this is buggy; check implementation.
+		}
+	}
+
+	
+	retractionAttempt(){
+		if( this.C.random() < this.pret ){
+			//const p = this.positions.pop()
+			const p = this.positions.shift()
+			this.DC.removeDendritePixel(this.cid, p)
+		}	
+		// upon complete withdrawal of a dendrite, new one grows.
+		if( this.positions.length == 0 ) this.resetDendrite()
+	}
+	
+	// check if position is inside parent cell.
+	inCell( pos ){
+		return ( this.C.pixt( pos ) == this.cid  )
+	}
+	
+	// should return the neighbor pixel of the current dendrite end which is 
+	// most in line with direction 'dir'. 
+	closestToDir( dir ){
+		const p = this.positions[ this.positions.length - 1 ]
+		
+		let pout
+		
+		const frac = (dir/Math.PI) % 2
+		if( frac <= (1/8) | frac > (15/8) ) pout = [ p[0]+1,p[1] ]
+		if( frac <= (3/8) & frac > (1/8 ) ) pout = [ p[0]+1, p[1]+1 ]
+		if( frac <= (5/8) & frac > (3/8) ) pout = [ p[0], p[1] + 1 ]
+		if( frac <= (7/8) & frac > (5/8) ) pout = [ p[0]-1, p[1]+1 ]
+		if( frac <= (9/8) & frac > (7/8) ) pout = [ p[0]-1, p[1] ]
+		if( frac <= (11/8) & frac > (9/8) ) pout = [ p[1]-1,p[1]-1 ]
+		if( frac <= (13/8) & frac > (11/8) ) pout = [ p[1], p[1]-1 ]
+		if( frac <= (15/8) & frac > (13/8 ) ) pout = [ p[1]+1, p[1]-1 ]
+		
+		// correct for any periodic boundaries of the grid.
+		return this.C.grid.correctPosition( pout )
+		
+	}
+	
+	// extend with probability pext; switch to retraction if time is up.
+	extensionAttempt(){
+		
+		let success = false
+		if( this.C.random() < this.pext ){
+			
+			// extension direction of dendrite chosen according to von Mises but mu is now
+			// the currently preferred dendrite direction. 
+			const newDir = this.sampleVonMises( this.dir, this.kappa_d )
+			const extensionPos = this.closestToDir( newDir )
+			//console.log( extensionPos )
+			// it works if the extension position is in the cell
+			if( this.inCell( extensionPos ) ){
+				this.positions.push( extensionPos )
+				this.DC.addDendritePixel( this.cid, extensionPos )
+				this.dir = newDir
+				success = true
+				this.extensionFails = 0
+			}
+						
+		}
+		
+		if( !success )	this.extensionFails++
+	
+		// dendrites extend during next max 300 time steps. if fails for 50 subsequent
+		// time steps, retraction starts.
+		if( ( this.timeLeft <= 0 ) | ( this.extensionFails >= 50 ) ){
+			this.extending = false
+			this.retracting = true
+		}
+		this.timeLeft--
+	}
+	
+	// new dendrites grow at current COM of a T cell, which must be 'inside' the cell.
+	// if this is not in the cell within 10 MCS, put it randomly in the cell.
+	establishAttempt(){
+	
+		if( this.establishFails <= 10 ){
+			const newPos = this.getCentroid()
+			if( this.inCell( newPos ) ){
+				this.initializing = false
+				this.extending = true
+				this.positions.push( newPos )
+				this.DC.addDendritePixel( this.cid, newPos )
+				return
+			}
+		} else {
+			const newPos = this.getRandomPositionInCell()
+			this.initializing = false
+			this.extending = true
+			this.positions.push( newPos )
+			this.DC.addDendritePixel( this.cid, newPos )
+			
+		}
+		this.establishFails++
+		
+	}
+	
+	getCentroid(){
+		const cen = this.C.getStat( CPM.CentroidsWithTorusCorrection )[ this.cid ]
+		const p = cen.map( Math.floor )
+		return this.C.grid.correctPosition( p )
+	}
+	getRandomPositionInCell(){
+		const cp = this.C.getStat( CPM.PixelsByCell )[ this.cid ]
+		const randomIndex = Math.floor( this.C.random() * cp.length )
+		return cp[randomIndex]
+	}
+	
+	update(){
+	
+		if( this.retracting ) this.retractionAttempt()
+		if( this.extending ) this.extensionAttempt()
+		if( this.initializing ) this.establishAttempt()
+				
+	}
+	
+	resetDendrite(){
+		
+		this.dir = this.initDir()
+		for( let p of this.positions ){
+			this.DC.removeDendritePixel( this.cid, p )
+		}
+		this.positions = []
+		
+		this.timeLeft = 300
+		this.extensionFails = 0
+		this.initializing = true
+		this.establishFails = 0
+		
+		this.extending = false
+		this.retracting = false
+		
+	}		
+}
+
+class DendriteConstraint extends CPM.SoftConstraint {
+
+	constructor( conf ){
+		super( conf )
+		
+		this.celldirections = {}
+		this.cellcentroidlists = {}
+				
+		this.dendrites = {}
+		//this.addDendrites()
+		
+		// this object will contain a sub-object for each cellID, 
+		// which in turn contains a key for each (indexcoordinate of)
+		// a pixel that currently belongs to a dendrite. That is: 
+		// a pixel belongs to a dendrite if it has a key in this object.
+		this.cellDendritePixels = {}
+		
+	}
+	
+	removeDendritePixel( cid, p ){
+		const i = this.C.grid.p2i(p)
+		this.cellDendritePixels[cid][i]--
+		if( this.cellDendritePixels[cid][i] == 0 ) delete this.cellDendritePixels[cid][i]
+	}
+	addDendritePixel( cid, p ){
+		const i = this.C.grid.p2i(p)
+		if( !this.cellDendritePixels.hasOwnProperty(cid) ){
+			this.cellDendritePixels[cid] = {}
+		}
+		if( !this.cellDendritePixels[cid].hasOwnProperty(i) ){
+			this.cellDendritePixels[cid][i] = 0
+		}
+		this.cellDendritePixels[cid][i]++
+	}
+	
+	addDendrites(){
+	
+		for( let cid of this.C.cellIDs() ){
+			if( !this.dendrites.hasOwnProperty(cid) ){
+				this.dendrites[cid] = []
+			}
+			const Nd = this.cellParameter( "N_DEN", cid )
+			while( this.dendrites[cid].length < Nd ){
+				this.dendrites[cid].push( new Dendrite( this, cid ) )
+			}
+		}
+	}
+	
+	currentDirectionOfCell( cid ){
+		if( !this.celldirections.hasOwnProperty(cid) ){
+			this.celldirections[cid] = this.randDir()
+			this.cellcentroidlists[cid] = []
+		}
+		return this.celldirections[cid]
+	}
+	
+	randDir(){
+		// random angle between 0 and 2pi.
+		return this.C.random() * 2 * Math.PI
+	}
+	
+	updateCellDirections(){
+
+		let centroids = this.C.getStat( CPM.CentroidsWithTorusCorrection )
+		for( let t of this.C.cellIDs() ){
+			let ld = this.cellParameter("DENDRITIC", t)
+			let dt = this.cellParameter("DELTA_T", t ) 
+			if( !ld ){
+				if( t in this.cellcentroidlists ){
+					delete this.cellcentroidlists[t]
+					delete this.celldirections[t]
+				}
+				continue
+			}
+			if( !(t in this.cellcentroidlists ) ){
+				this.cellcentroidlists[t] = []
+				this.celldirections[t] = this.randDir()
+			}
+ 
+			let ci = centroids[t]
+			this.cellcentroidlists[t].unshift(ci)
+			if( this.cellcentroidlists[t].length >= dt ){
+				// note, dt could change during execution
+				let l
+				while( this.cellcentroidlists[t].length >= dt ){
+					l = this.cellcentroidlists[t].pop()
+				}
+				let dx = [], len = 0
+				for( let j = 0 ; j < l.length ; j ++ ){
+					dx[j] = ci[j] - l[j]
+					len += dx[j]*dx[j]
+				}
+				len = Math.sqrt( len )
+				//this.celldirections[t] = Math.atan2( dx[1], dx[0] )
+				this.celldirections[t] = Math.atan2( dx[1], dx[0] )
+				
+				
+			}
+		}
+
+	}
+	
+	nextToDendrite(i,cid){
+		if( !this.cellDendritePixels.hasOwnProperty(cid)) return false
+		
+		if( this.cellDendritePixels[cid].hasOwnProperty(i) ) return true
+		
+		const N = this.C.grid.neighi( i )
+		for( let ni of N ){
+			if( this.cellDendritePixels[cid].hasOwnProperty(ni) ) return true
+		}
+		return false
+		
+	}
+	
+	postMCSListener(){
+	
+		this.updateCellDirections()
+		this.addDendrites()
+		
+		// loop over dendrites and establish, grow, or retract them depending 
+		// on the stage they are in. 
+		for( let cid of this.C.cellIDs() ){
+			for( let den of this.dendrites[cid] ){
+				den.update()
+			}
+		}
+	
+	}
+	
+	
+	
+	deltaH( sourcei, targeti, src_type, tgt_type ){
+		const srcDendritic = this.cellParameter( "DENDRITIC", src_type )
+		const tgtDendritic = this.cellParameter( "DENDRITIC", tgt_type )
+		
+		let dH = 0
+		
+		// target pixels next to a dendrite cannot be copied into; return infinite dH
+		if( tgtDendritic ){
+			if( this.nextToDendrite( targeti, tgt_type ) )	dH = Infinity
+		}
+		
+		// when extending cell is dendritic:
+		// the likelihood that elements grow into positions adjacent to a dendrite is
+		// increased by extending deltaH with a term that decreases deltaH with E_extend.
+		if( srcDendritic ){
+			if ( this.nextToDendrite( targeti, src_type ) ){
+				dH =  -this.cellParameter( "E_EXT", src_type )
+				//console.log(dH)
+			}
+		}		
+		
+		
+		return dH
+	}
+	
+}
+
+
+// declare variables
+let C, Cim, gm, meter
+
+
+function initialize(){
+
+	const fs = [100,100]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 100
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+function setup( field_size, configuration_options ){
+
+	// same as in the last example
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,500], [500,1000]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,100], V : [0,165] } ) )
+	C.add( new DendriteConstraint( { 
+		DENDRITIC : [ false, true ],
+		DELTA_T : [ 0, 120],
+		N_DEN : [ 0, 2 ],
+		E_EXT : [ 0,1000],
+		P_RET : [ 0,.2], //.2
+		P_EXT : [ 0,.25], //.25
+		KAPPA_D : [ 0, 20 ],
+		KAPPA_C : [ 0, 5 ]
+	} ) )
+
+	// Our field is a bit bigger so let's reduce the zoom.
+	Cim = new CPM.Canvas( C, { zoom : 4 } )
+	
+	// Nothing new here:
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	gm.seedCell( 1 )
+}
+
+
+function draw(){
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	
+	
+	// draw dendrites
+	const den = C.getConstraint( "DendriteConstraint" ).dendrites
+	for( let cid of Object.keys(den ) ){
+		for( let dd of den[cid] ){
+			Cim.drawPixelSet( dd.positions, dd.color )
+		}
+	}
+	
+	Cim.drawCellBorders( 1, "000000" )
+}
+
+
+
+
+// This function has not changed from the last example.
+function step(){
+	C.timeStep() 	
+	draw() 			
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Pseudopod model</h1>
+ <p>Based on <a href="https://www.pnas.org/doi/10.1073/pnas.1208927109">Ariotti et al </a>.</p> 
+</body>
+</html>

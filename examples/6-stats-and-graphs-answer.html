@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script src="./plotly-2.16.1.min.js"></script>
+<style>
+body{
+	 max-width: 1000px;
+}
+</style>
+<script>
+"use strict"
+
+
+// declare variables
+let C, Cim, gm, meter, time = 0
+let cell_volume = [0], time_vec = [0], plot_history = 200
+
+// initialize for plotting
+let trace = {
+	x: time_vec,
+	y: cell_volume,
+	type: 'scatter',
+  }
+let data = [trace]
+let layout = {
+  xaxis: {title:  "time (MCS)"},
+  yaxis: {title: "cell size (pixels)", range: [490,510]}
+}
+
+
+function initialize(){
+
+	const fs = [150,150]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+// same as in the last example
+function setup( field_size, configuration_options ){
+
+	
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,100]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	C.add( new CPM.PerimeterConstraint( { LAMBDA_P : [0,2], P : [0,260] } ) )
+	C.add( new CPM.ActivityConstraint( {
+		LAMBDA_ACT : [0,500],
+		MAX_ACT : [0,30],
+		ACT_MEAN : "geometric"
+	} ) )
+	Cim = new CPM.Canvas( C, { zoom : 2, parentElement : document.getElementById("simulation") } )
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	gm.seedCell( 1 )
+}
+
+function draw(){
+
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	Cim.drawActivityValues( 1 )
+		
+}
+
+function updateGraph(){
+	
+	const currentCell = C.getStat( CPM.PixelsByCell )
+	const cid = Object.keys( currentCell )[0]
+	const currentPixels = currentCell[cid].length
+	
+	
+	cell_volume.push( currentPixels )
+	time_vec.push( C.time )
+	
+	while( time_vec.length > plot_history ){
+		time_vec.shift()
+		cell_volume.shift()
+	}
+	Plotly.newPlot('myDiv', data, layout )
+}
+
+
+// This function has not changed from the last example.
+function step(){
+	C.timeStep()
+	draw() 		
+	updateGraph()	
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Statistics and plotting</h1>
+ <p>Combining Artistoo with other js libraries such as <a href="https://plotly.com/javascript/">plotly.js</a>.</p>
+ 
+ <div style="width:100%">
+ 	<div id="simulation" style="width:320px;float:left;padding-top:50px"></div>
+ 	<div id="myDiv" style="width:600px;height:400px;float:left"></div>
+ </div>
+</body>
+</html>

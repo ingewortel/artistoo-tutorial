@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script src="./plotly-2.16.1.min.js"></script>
+<script>
+"use strict"
+
+let kappa = 20
+const mu = Math.PI
+let x = []
+const maxLen = 1000
+
+	// code based on: 
+	// https://dlwhittenbury.github.io/ds-1-sampling-and-visualising-the-von-mises-distribution.html
+function sampleVonMises( mu, kappa ){
+
+		const a = 1.0 + Math.sqrt(1.0 + 4.0 * Math.pow(kappa,2) )
+		const b = (a - Math.sqrt(2.0 * a)) / (2.0 * kappa)
+		const r = (1.0 + Math.pow(b,2)) / (2.0 * b)
+
+		//Pseudo-random numbers sampled from a uniform distribution [0,1]
+		// use this.C.random() instead of Math.random() because this one has random seed.
+		const U1 = Math.random()
+		const U2 = Math.random()
+		const U3 = Math.random()
+
+		const z = Math.cos(Math.PI * U1)
+		const f = (1.0 + r * z) / (r + z)
+		const c = kappa * (r - f)
+
+		if ( ((c * (2.0 - c) - U2) > 0.0)  | (( Math.log(c/U2) + 1.0 - c) > 0.0) ){
+			const denom = Math.sign( U3 - 0.5 ) * Math.acos(f) + mu
+			let out = denom % (2*Math.PI)
+			if( out < 0 ) out += 2*Math.PI
+			return out
+		} else {
+			//return 0
+			return sampleVonMises( mu, kappa ) // should be 0 but for some reason this is buggy; check implementation.
+		}
+	}
+	
+function initialize(){
+
+
+	const N = 10
+	x = []
+	for( let i = 0; i < N; i++ ){
+		x.push( sampleVonMises( mu, kappa ) ) 
+	}
+
+
+	let trace = {
+		x: x,
+		type: 'histogram',
+	  };
+	let  data = [trace]
+	var layout = {
+	  xaxis: {range: [0, 2*Math.PI]}
+	};
+	Plotly.newPlot('myDiv', data, layout);
+	
+	
+	step()
+
+}
+
+function step(){
+	if( x.length < maxLen ) x.push( sampleVonMises( mu, kappa ) )
+	let trace = {
+		x: x,
+		type: 'histogram',
+	  };
+	let data = [trace]
+	var layout = {
+	  xaxis: {range:  [0, 2*Math.PI]}
+	};
+	Plotly.newPlot('myDiv', data, layout);
+	requestAnimationFrame( step )
+}
+
+function reset(){
+	x = []
+}
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <div id="myDiv" style="width:600px;height:600px;"></div>
+ 
+</body>
+</html>

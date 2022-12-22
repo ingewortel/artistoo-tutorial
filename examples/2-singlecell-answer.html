@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>SingleCell</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// initialize some global variables to be used by the functions below.
+let C, Cim, gm, meter
+
+// This is called when the page is loaded (see 'onload' at the HTML tag <body> below).
+// The functions 'setup', 'seedCells', and 'step' are defined below.
+function initialize(){
+
+	const fs = [50,50]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+
+// this function is called only once, by initialize(), when the page is loaded.
+// it uses configuration options to set up the CPM ("C"), the canvas on which it
+// is drawn ("Cim"), the grid manipulator used to seed cells ("gm") and the 
+// meter that shows the framerate of your simulation in the browser.
+function setup( field_size, configuration_options ){
+
+	// Build a new CPM of a given field size [w,h] and configuration options
+	// (random seed, CPM temperature, boundary conditions).
+	// See https://artistoo.net/class/src/models/CPM.js~CPM.html for the CPM API.
+	// Note how anything called from the artistoo library has to be prefixed with "CPM."
+	C = new CPM.CPM( field_size, configuration_options )
+	
+	// Add the Hamiltonian terms, which we call "constraints", with the right
+	// parameters. First adhesion with the following matrix:
+	// [[J_bg,bg, J_bg,cell ],[J_cell,bg, J_cell,cell]]
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,100]] } ) )
+	// and a volume term with corresponding lambda and target volume
+	// (first element is zero because it contains the lambda/V for the background)
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	
+	// Add a canvas where the content of the CPM "C" will be drawn at a zoom-level of 7.
+	Cim = new CPM.Canvas( C, { zoom : 7 } )
+	
+	// This is called a grid manipulator and can be used to add/remove cells in the model:
+	gm = new CPM.GridManipulator( C )
+	
+	// this just shows how fast your simulation is running.
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	// seed a cell of 'cellKind' 1. 
+	// see this page for the distinction between cellKind and cellID:
+	// https://artistoo.net/typedef/index.html#static-typedef-CellKind 
+	gm.seedCell( 1 )
+}
+
+function draw(){
+	
+	// remove the drawing from the previous step, clear in a certain background color.
+	Cim.clear("eaecef")
+
+	// draw all cells of 'kind' 1 in black:
+	Cim.drawCells( 1, "000000" )
+	
+	// two ways to draw borders
+	Cim.drawOnCellBorders( 1, "ffffff" )
+	Cim.drawCellBorders( 1, "ff0000" )
+}
+
+
+// This function is called recursively to run the model step by step and construct the animation.
+function step(){
+	C.timeStep() 	// run one MCS of the model.
+	draw() 			// update the visualization
+	meter.tick()	// tick the meter to show simulation speed.
+	requestAnimationFrame( step )
+}
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Single cell </h1>
+ <p>
+ A single CPM cell with only adhesion and volume constraints.</p>
+</body>
+</html>

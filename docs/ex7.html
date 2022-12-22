@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Artistoo tutorial</title>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+	<style>
+	
+	h2 {
+		padding-top: 30px;
+	}	
+	
+	.exercise {
+		background-color: #d9f1fa;
+		padding : 10px;
+		margin-top: 20px;
+		margin-bottom: 20px;
+	}
+	
+	.sidebar {
+	  position: fixed;
+	  top: 0;
+	  /* rtl:raw:
+	  right: 0;
+	  */
+	  bottom: 0;
+	  /* rtl:remove */
+	  left: 0;
+	  z-index: 100; /* Behind the navbar */
+	  padding: 48px 0 0; /* Height of navbar */
+	  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+	}
+
+	@media (max-width: 767.98px) {
+	  .sidebar {
+		top: 5rem;
+	  }
+	}
+
+	.sidebar-sticky {
+	  height: calc(100vh - 48px);
+	  overflow-x: hidden;
+	  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+	}
+
+	.sidebar .nav-link {
+	  font-weight: 500;
+	  color: #333;
+	}
+
+	.sidebar .nav-link .feather {
+	  margin-right: 4px;
+	  color: #727272;
+	}
+
+	.sidebar .nav-link.active {
+	  color: #2470dc;
+	}
+
+	.sidebar .nav-link:hover .feather,
+	.sidebar .nav-link.active .feather {
+	  color: inherit;
+	}
+
+	.sidebar-heading {
+	  font-size: .75rem;
+	}
+	</style>
+	
+</head>
+<body>
+
+
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  	<p><br></p>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="navbar-nav">
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3 sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="./index.html">
+              <span data-feather="home" class="align-text-bottom"></span>
+              Intro
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex1.html">
+              <span data-feather="file" class="align-text-bottom"></span>
+              1. HTML and console
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex2.html">
+              <span data-feather="shopping-cart" class="align-text-bottom"></span>
+              2. Simple CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex3.html">
+              <span data-feather="users" class="align-text-bottom"></span>
+              3. Act-CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex4.html">
+              <span data-feather="bar-chart-2" class="align-text-bottom"></span>
+              4. Interactivity
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex5.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              5. Visualizations
+            </a>
+          </li>
+           <li class="nav-item">
+            <a class="nav-link" href="./ex6.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              6. Outputs and plots
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="./ex7.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              7. Custom constraint (1)
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex8.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              8. Custom constraint (2)
+            </a>
+          </li>          
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+          <span>Tips and tricks</span>
+          <a class="link-secondary" href="#" aria-label="Add a new report">
+            <span data-feather="plus-circle" class="align-text-bottom"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link" href="./js-basics.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              Some JS basics
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./artistoo-howto.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              "How to" in Artistoo
+            </a>
+          </li>
+         
+        </ul>
+      </div>
+    </nav>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Tutorial: Making interactive CPMs in the browser with Artistoo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex6.html'">Previous</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex8.html'">Next</button>
+          </div>
+        </div>
+      </div>
+      
+      <h2>7. Custom constraints and Hamiltonian terms</h2>
+      <div>
+      	
+      	<p>So far we've worked mostly with the Act-CPM, but a key strength of the CPM is 
+      	that you can customize it by adding terms to the Hamiltonian. We'll now see 
+      	how you can customize your models further by defining your own "constraints" in
+      	Artistoo.</p>
+      
+      	<h4>Constraints in Artistoo: "hard" vs "soft" constraints</h4>
+      	
+      	<p>Artistoo has two sorts of constraints that you can also define yourself:
+      		<ul>
+      			<li>"soft" constraints; these add a term to &Delta;H to modify 
+      			behavior in the CPM. They can make certain copy attempts very 
+      			(un)favourable, but what happens remains stochastic and even 
+      			unfavourable attempts might still occur. </li>
+      			<li>"hard" constraints; if these are not satisfied, the copy attempt
+      			fails and the Hamiltonian is not even computed anymore. For this reason,
+      			it is good to use hard constraints when this is the behavior you want
+      			(instead of defining a "soft constraint" with &Delta;H = Infinity, which 
+      			would do the trick but be less efficient).</li>
+      		</ul>
+      	</p>
+      	
+      	<h4>Example of a custom constraint </h4>
+      
+      	<p>Please open <code>7-hardconstraint.html</code> in a text editor and your browser. 
+      	In the browser, you should see a bunch of Act-cells that are confined by an 
+      	invisible circle. This is the result of a custom 
+      	<a href="https://artistoo.net/class/src/hamiltonian/HardConstraint.js~HardConstraint.html"><code>HardConstraint</code></a> 
+      	that "forbids" copy attempts into pixels outside of this circle.
+      	</p>
+      	
+      	<p>Now have a look at the code in the text editor. It should look pretty familiar,
+      	with a few notable additions:
+      		<ul>
+      			<li>We define a new "class", extending the <a href="https://artistoo.net/class/src/hamiltonian/HardConstraint.js~HardConstraint.html"><code>HardConstraint</code></a> 
+      			to get our desired behavior (more on that below)
+      			</li>
+      			<li>Our custom constraint is again added in <code>setup()</code>. Note
+      			that we leave out the <code>CPM.</code> prefix because this constraint is
+      			defined locally and is not part of the Artistoo library.      			
+      			</li>
+      		</ul>
+      	</p>
+      	
+      	<p>As you can see, the code is all pretty standard except for the definition of 
+      	the constraint class itself. Inside the new class, you will find three 
+      	functions (note how they are not prepended with "function" because they 
+      	are not globally available but belong to the class):
+      	<ul>
+      		<li><code>constructor( conf )</code>. <br>
+      		This is called when you use <code>new HiddenFigures( {...} )</code> to create
+      		a new constraint of this class. You can pass it a configuration object 
+      		<code>conf</code> containing any parameters for your constraint, which is
+      		passed along to the constructor of the parent class (HardConstraint) via
+      		<code>super(conf)</code>. The configuration will then be available from 
+      		inside the constraint class under <code>this.conf</code>. You can also
+      		attach other properties to <code>this</code> here as you can see in this example.
+      		</li>
+      		<li><code>withinCircle(i)</code>. <br>
+      			In this specific case we have added this function to check if a given 
+      			pixel is within our circle or not. There are two things to note here:
+      			<ul>
+      				<li> The input argument is a so-called <a href="">index coordinate</a>.
+      				Under the hood, Artistoo uses this for speed. See the link for more 
+      				information. When you are doing stuff infrequently (e.g. only after an 
+      				MCS, such as drawing or computing statistics) it is fine to use regular
+      				coordinates of the form <code>[x,y]</code>. But constraints are 
+      				called much more often (every copy attempts), so it is worthwhile using
+      				the index coordinates instead.</li>
+      				<li> See how we are accessing the CPM through <code>this.C</code>. 
+      				We can do this because <code>C.add(...)</code> attaches the CPM
+      				to <code>this</code>. But since we call <code>C.add(...)</code>
+      				<i>after</i> generating a <code>new HiddenFigures( {...} )</code>,
+      				this means you will not be able to use <code>this.C</code> inside 
+      				the constructor yet! 
+      				</li>
+      			</ul>
+      		</li>
+      		<li>
+      			<code>fulfilled(src_i, tgt_i, src_cid, tgt_cid)</code><br>
+      			every <code>HardConstraint</code> must have this function with exactly
+      			these arguments, because the CPM will look for this method whenever a 
+      			copy attempt is proposed.
+      		</li>
+      	</ul>
+      	</p>
+
+      			
+		<p><div class="exercise">
+		<b>Exercise</b><br>
+		Can you figure out how to modify this constraint into a soft constraint, which 
+		does not "forbid" copy attempts out of the circle but instead penalizes them
+		with some &lambda; in &Delta;H? <br><br>
+		
+		(<i>Hint: check out <a href="https://artistoo.net/class/src/hamiltonian/SoftConstraint.js~SoftConstraint.html"><code>SoftConstraint</code></a>.
+		It works similar to the hard constraint version, but instead of <code>fulfilled</code>
+		it needs a <code>deltaH()</code> function. 
+		</i>)
+		</div></p>
+		
+		<p>Check out <code>7-softconstraint.html</code> if you get stuck. </p>
+		
+		<p>When you're done, hit "next" for the last exercise!</p>
+
+		
+		
+      </div>
+      
+
+   </main>
+  </div>
+</div>
+
+
+
+
+
+</body>
+</html>
+
+

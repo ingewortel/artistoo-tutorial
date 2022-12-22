@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Artistoo tutorial</title>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+		<style>
+		
+	h2 {
+		padding-top: 30px;
+	}
+	
+	.exercise {
+		background-color: #d9f1fa;
+		padding : 10px;
+		margin-top: 20px;
+		margin-bottom: 20px;
+	}
+	
+	.sidebar {
+	  position: fixed;
+	  top: 0;
+	  /* rtl:raw:
+	  right: 0;
+	  */
+	  bottom: 0;
+	  /* rtl:remove */
+	  left: 0;
+	  z-index: 100; /* Behind the navbar */
+	  padding: 48px 0 0; /* Height of navbar */
+	  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+	}
+
+	@media (max-width: 767.98px) {
+	  .sidebar {
+		top: 5rem;
+	  }
+	}
+
+	.sidebar-sticky {
+	  height: calc(100vh - 48px);
+	  overflow-x: hidden;
+	  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+	}
+
+	.sidebar .nav-link {
+	  font-weight: 500;
+	  color: #333;
+	}
+
+	.sidebar .nav-link .feather {
+	  margin-right: 4px;
+	  color: #727272;
+	}
+
+	.sidebar .nav-link.active {
+	  color: #2470dc;
+	}
+
+	.sidebar .nav-link:hover .feather,
+	.sidebar .nav-link.active .feather {
+	  color: inherit;
+	}
+
+	.sidebar-heading {
+	  font-size: .75rem;
+	}
+	</style>
+	
+</head>
+<body>
+
+
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+	<p><br></p>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="navbar-nav">
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3 sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="./index.html">
+              <span data-feather="home" class="align-text-bottom"></span>
+              Intro
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex1.html">
+              <span data-feather="file" class="align-text-bottom"></span>
+              1. HTML and console
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="./ex2.html">
+              <span data-feather="shopping-cart" class="align-text-bottom"></span>
+              2. Simple CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex3.html">
+              <span data-feather="users" class="align-text-bottom"></span>
+              3. Act-CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex4.html">
+              <span data-feather="bar-chart-2" class="align-text-bottom"></span>
+              4. Interactivity
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex5.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              5. Visualizations
+            </a>
+          </li>
+           <li class="nav-item">
+            <a class="nav-link" href="./ex6.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              6. Outputs and plots
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex7.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              7. Custom constraint (1)
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex8.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              8. Custom constraint (2)
+            </a>
+          </li>          
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+          <span>Tips and tricks</span>
+          <a class="link-secondary" href="#" aria-label="Add a new report">
+            <span data-feather="plus-circle" class="align-text-bottom"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link" href="./js-basics.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              Some JS basics
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./artistoo-howto.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              "How to" in Artistoo
+            </a>
+          </li>
+         
+        </ul>
+      </div>
+    </nav>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Tutorial: Making interactive CPMs in the browser with Artistoo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex1.html'">Previous</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex3.html'">Next</button>
+          </div>
+        </div>
+      </div>
+      
+      <h2>2. Simple CPM</h2>
+      <div>
+      	
+      
+      	<h4>Page contents</h4>
+      	<p>Please open <code>2-singlecell.html</code> in a text editor. </p>
+      	<p>Inside the <code>&lt;script&gt;&lt;/script&gt;</code> tags, code has now been added
+      	to build a simple CPM. First, some global variables are declared that will be used
+      	later:
+      	<code>C</code> (which will contain the 
+      		CPM model), <code>Cim</code> (which will contain the canvas on which the 
+      		CPM is visualized), <code>gm</code> (which helps you put cells in your CPM),
+      		and <code>meter</code> (which you don't strictly need but is nice to 
+      		show how fast your simulation is running).
+      	</p>
+      	
+      	<p> You should then see the following functions:
+      	
+      	<ul>
+      		<li><code>initialize()</code><br>
+				Remember, this is called through the <code>onload</code> attribute of the 
+				HTML body, which means this function is called when the page is loaded.
+				This function gets everything going by first initializing the CPM
+				(through <code>setup()</code>), putting a cell in it (through <code>seedCell()</code>),
+				and starting the first simulation <code>step()</code>.      		
+      		</li>
+      		<li><code>setup()</code><br>
+      			This is where the global variables declared above get assigned their value.
+      			Most importantly, it sets up and configures a 
+      			<a href="https://artistoo.net/class/src/models/CPM.js~CPM.html" target="_blank">CPM</a> and a corresponding
+      			<a href="https://artistoo.net/class/src/Canvas.js~Canvas.html" target="_blank">Canvas</a> 
+      			and <a href="https://artistoo.net/class/src/grid/GridManipulator.js~GridManipulator.html" target="_blank">GridManipulator</a>.
+      			(More about that below).
+      		</li>
+      		<li><code>seedCell()</code><br>
+      			Predictably, this function puts a cell on the grid.
+      		</li>
+      		<li><code>draw()</code><br>
+      			When called, this takes care of updating the Canvas with the current
+      			state of the CPM.
+      		</li>
+      		<li><code>step()</code><br>
+      		This function runs a step of the model (<code>C.timeStep()</code>), and
+      		after every step (MCS), can also do other stuff. In this case, it calls
+      		<code>draw()</code> and ticks the <code>meter</code> to show that a step
+      		has been completed. It then recursively calls itself through
+      		<code>requestAnimationFrame</code>, which is how we get the animation.      		
+      		</li>    	
+      	</ul>
+      	
+      	
+      	</p>
+      	
+      	<h4>The simulation</h4>
+      	
+      	<p>Now, please open <code>2-singlecell.html</code> in your browser. 
+      	You should see a gray field that is empty, and a meter registering the
+      	frame rate in the upper right corner.</p>
+		
+		<p>As shown above, the page already constructs a CPM, seeds a cell (as one 
+		pixel in the middle of the grid), and starts the simulation. However, we
+		see nothing happening because the Hamiltonian of this model is not very useful 
+		yet, and the (single) cell pixel disappears so fast that you don't even see it.</p>
+		
+		
+		<p><div class="exercise">
+		<b>Exercise</b><br>
+		Have a look at the <code>setup()</code> function. When the CPM <code>C</code>
+		is initialized, it gets a temperature, random seed and boundary conditions
+		through <code>configuration_options</code>. But it has no Hamiltonian yet.
+		This is accomplished later through <code>C.add()</code>, which allows us to 
+		construct a Hamiltonian term by term. <br><br>
+		
+		As you can see, the current model only contains a standard adhesion term, 
+		which is why the single cell pixel immediately disappears (the easiest way 
+		to minimize the adhesion energy). To finish this model, please look at the
+		<a href="https://artistoo.net/class/src/hamiltonian/VolumeConstraint.js~VolumeConstraint.html">
+		<code>VolumeConstraint</code></a> and see if you can give this 
+		CPM a volume term with &lambda;<sub>V</sub> = 50 and V<sub>target</sub> = 500
+		pixels. <br><br>
+		
+		<i>Hint: CPMs typically consider cell identities &sigma;, which can 
+		belong to different celltypes &tau;. Because "type" was historically also
+		sometimes used for &sigma;, we call these <a href="https://artistoo.net/typedef/index.html#static-typedef-CellId">cellID</a> and
+		<a href="https://artistoo.net/typedef/index.html#static-typedef-CellKind">cellKind</a> in Artistoo. CPM parameters are mostly dependent on 
+		&tau; so they are specified as arrays, where the element at index 
+		zero is reserved for the background and the others contain the value for 
+		all the &tau; in the model (in this case only 1).</i>
+		</div></p>
+
+		<p>When you have added the volume constraint, you should see a single cell 
+		in the middle of the grid. You can compare this to 
+		<code>2-singlecell-answer.html</code>. </p>
+		
+		<p><div class="exercise">
+		<b>Optional exercise</b><br>
+		Have a look at the code again and try to modify some other parameters, 
+		such as the CPM temperature, the field size, or the color used to draw the cell. <br><br>
+		
+		Can you add a second cell of the same cellKind? Or of a different cellKind, in 
+		a different color? (<i>Hint: you'll have to change <code>seedCell()</code>,
+		<code>draw()</code>, and add elements to the parameter arrays for the 
+		constraints added in <code>setup()</code>. </i>)
+		</div></p>
+ 		
+ 		<p>When you are done, click "Next" to simulate a migrating cell.</p>
+		
+		
+      </div>
+      
+
+   </main>
+  </div>
+</div>
+
+
+
+
+
+</body>
+</html>
+
+

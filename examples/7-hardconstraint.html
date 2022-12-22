@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+class HiddenFigures extends CPM.HardConstraint {
+
+	constructor( conf ){
+		super( conf )
+		
+		// set some properties
+		// (the parent constraint class ensures that the configuration object 
+		// passed to the constraint is available under 'this.conf')
+		this.radius = conf.RADIUS
+	}
+
+	withinCircle( i ){
+		
+		const mid = this.C.grid.midpoint
+		
+		// not the most efficient because of the conversion from IndexCoordinate
+		// to ArrayCoordinate, but it works:
+		const p = this.C.grid.i2p( i )
+		let d = 0
+		for( let dim = 0; dim < p.length; dim++ ){
+			const dx = p[dim] - mid[dim]
+			d += Math.pow( dx, 2 )
+		}
+		if( Math.sqrt( d ) <= this.radius ) return true
+		
+		return false
+		
+		
+	}
+	
+	// Hard constraints don't act through the Hamiltonian; they instead 
+	// have a 'fulfilled' method to check if the current copy attempt 
+	// is allowed. Input arguments must be the positions (i) and cellIDs (cid) of the 
+	// source (src) and target (tgt) pixels of the current copy attempt.
+	// if fulfilled returns false, the copy attempt fails (without computing the 
+	// Hamiltonian at all).
+	fulfilled( src_i, tgt_i, src_cid, tgt_cid ){
+		
+		// "inward" copy attempts (background into cell) always allowed
+		if( src_cid == 0 ) return true
+		
+		// if this cell is not sensitive to the constraint, also allow the attempt
+		if( !this.cellParameter( "CONSTRAINED", src_cid ) ) return true
+		
+		// allow "outward" copy attempts (i.e. where source = cell, target = background) 
+		// only when target pixel is inside a circle of this radius around the grid midpoint.
+		if( this.withinCircle( tgt_i, radius ) ) return true
+		
+		return false
+	}
+
+}
+
+let C, Cim, gm, meter
+function initialize(){
+
+	const fs = [200,200]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+
+function setup( field_size, configuration_options ){
+
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,20]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	C.add( new CPM.PerimeterConstraint( { LAMBDA_P : [0,2], P : [0,260] } ) )
+	C.add( new CPM.ActivityConstraint( { LAMBDA_ACT : [0,500], MAX_ACT : [0,30], ACT_MEAN : "geometric" } ) )
+	
+	// add our custom constraint; we don't need the "CPM." because this is not part
+	// of the artistoo library, class is defined above.
+	C.add( new HiddenFigures( { CONSTRAINED: [false, true], RADIUS : 50 } ))
+	Cim = new CPM.Canvas( C, { zoom : 2 } )
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	gm.seedCellsInCircle( 1, 12, C.grid.midpoint, 50 )
+}
+
+function draw(){
+
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	Cim.drawActivityValues( 1 )
+	Cim.drawCellBorders( 1, "ffffff")
+}
+
+
+// This function has not changed from the last example.
+function step(){
+	C.timeStep() 	
+	draw() 			
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Custom Constraint (simple)</h1>
+ <p>
+ 	A simple "hard constraint" that forbids any protruding copy attempts 
+ 	into pixels further than 50 pixels from the grid midpoint.
+ </p> 
+</body>
+</html>

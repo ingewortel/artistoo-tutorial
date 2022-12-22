@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Artistoo tutorial</title>
+	<link href="./prettify-tomorrow.css" rel="stylesheet">
+	<script src="./prettify.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+	<style>
+	
+	h2 {
+		padding-top: 30px;
+	}	
+	
+	.exercise {
+		background-color: #d9f1fa;
+		padding : 10px;
+		margin-top: 20px;
+		margin-bottom: 20px;
+	}
+	
+	.sidebar {
+	  position: fixed;
+	  top: 0;
+	  /* rtl:raw:
+	  right: 0;
+	  */
+	  bottom: 0;
+	  /* rtl:remove */
+	  left: 0;
+	  z-index: 100; /* Behind the navbar */
+	  padding: 48px 0 0; /* Height of navbar */
+	  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+	}
+
+	@media (max-width: 767.98px) {
+	  .sidebar {
+		top: 5rem;
+	  }
+	}
+
+	.sidebar-sticky {
+	  height: calc(100vh - 48px);
+	  overflow-x: hidden;
+	  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+	}
+
+	.sidebar .nav-link {
+	  font-weight: 500;
+	  color: #333;
+	}
+
+	.sidebar .nav-link .feather {
+	  margin-right: 4px;
+	  color: #727272;
+	}
+
+	.sidebar .nav-link.active {
+	  color: #2470dc;
+	}
+
+	.sidebar .nav-link:hover .feather,
+	.sidebar .nav-link.active .feather {
+	  color: inherit;
+	}
+
+	.sidebar-heading {
+	  font-size: .75rem;
+	}
+	
+	pre > code {
+	padding:7px;
+	  display: block;
+	  white-space: pre;
+	  -webkit-overflow-scrolling: touch;
+	  overflow-x: auto;
+	}
+
+	pre.prettyprint, pre > code {
+	  /*padding: 4px;*/
+	  margin: 1em 0;
+	  background-color: #f8f8f8;
+	  border-radius: 3px;
+	  /*font-size:14px!important;*/
+	}
+
+	
+	
+	</style>
+	
+</head>
+<body>
+
+
+<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+  	<p><br></p>
+  <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="navbar-nav">
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3 sidebar-sticky">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" aria-current="page" href="../index.html">
+              <span data-feather="home" class="align-text-bottom"></span>
+              Intro
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex1.html">
+              <span data-feather="file" class="align-text-bottom"></span>
+              1. HTML and console
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex2.html">
+              <span data-feather="shopping-cart" class="align-text-bottom"></span>
+              2. Simple CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex3.html">
+              <span data-feather="users" class="align-text-bottom"></span>
+              3. Act-CPM
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex4.html">
+              <span data-feather="bar-chart-2" class="align-text-bottom"></span>
+              4. Interactivity
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex5.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              5. Visualizations
+            </a>
+          </li>
+           <li class="nav-item">
+            <a class="nav-link" href="./ex6.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              6. Outputs and plots
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex7.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              7. Custom constraint (1)
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./ex8.html">
+              <span data-feather="layers" class="align-text-bottom"></span>
+              8. Custom constraint (2)
+            </a>
+          </li>          
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+          <span>Tips and tricks</span>
+          <a class="link-secondary" href="#" aria-label="Add a new report">
+            <span data-feather="plus-circle" class="align-text-bottom"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link active" href="./js-basics.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              Some JS basics
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="./artistoo-howto.html">
+              <span data-feather="file-text" class="align-text-bottom"></span>
+              "How to" in Artistoo
+            </a>
+          </li>
+         
+        </ul>
+      </div>
+    </nav>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Tutorial: Making interactive CPMs in the browser with Artistoo</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <!--<button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex6.html'">Previous</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="location.href='./ex8.html'">Next</button>-->
+          </div>
+        </div>
+      </div>
+      
+      <h2>JavaScript basics</h2>
+      <div>
+      
+      	<h4>Comments</h4>
+      	
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">//one-liner
+
+/* 
+A comment that spans
+multiple lines.
+*/
+</code></code></pre>
+
+      	
+      	
+      	<h4>Declaring variables: const, var, let</h4>
+      	
+      	<p>In JavaScript, you have to declare a variable before you can give it a value:</p>
+
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let myVariable = "Hello World"</code></code></pre>
+
+		<p>Once you have declared a variable using "let", you can always change it:</p>
+
+
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let myVariable = "Hello World"
+myVariable = "Something else"</code>
+</code></pre>
+		
+		<p>If you are sure your variable will not change, you can use "const" instead
+		to avoid surprises:</p>
+		
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">const myVariable = "Hello World"
+
+// the following will not work
+myVariable = "Something else"</code>
+</code></pre>
+		
+		<p>In older code you may encounter variable declarations with "var". This is still 
+		supported but "let" or "const" are preferred; see 
+		<a href="https://www.freecodecamp.org/news/var-let-and-const-whats-the-difference/">this page</a>
+		to learn more about the differences. </p>
+		
+		
+		
+		<h4>Arrays</h4>
+		
+		<p>You can make an array like so:</p>
+		
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// numbers
+let arr = [1,2,3]
+
+// or something else, like strings
+let str_arr = ["hello", "world"]</code>
+</code></pre>		
+		
+		<p>And access its elements by index (0-based):</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let arr = [1,2,3]
+
+arr[1]
+//returns 2</code>
+</code></pre>	
+		
+		<p>Add an element to an existing array:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let arr = [1,2,3]
+
+arr.push(4)
+//now [1,2,3,4]</code>
+</code></pre>
+
+		<p>Remove first or last element:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let arr = [1,2,3]
+
+arr.shift()
+//now [2,3]
+
+arr2 = [1,2,3]
+arr2.pop()
+//now [1,2]</code>
+</code></pre>		
+		
+		<p>Apply a function to every element in an array</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let arr = [1,2,3]
+
+add1 = function( x ){ return x + 1 }
+
+arr.map( add1 )
+// returns [2,3,4]</code>
+</code></pre>		
+	
+		<p>If you assign an existing array to a new variable, note that this will not
+		truly copy the array but only create a pointer, such that both variables point
+		to the same array. This can cause unexpected behavior if you are not aware of this:</p>
+		
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let arr = [1,2,3]
+let arr2 = arr
+
+arr2.push(4)
+
+arr
+// arr has now also been modified and returns [1,2,3,4]</code>
+</code></pre>
+		
+		<h4>Objects</h4>
+		
+		<p>Instead of arrays, if you quickly want to look up a specific element or 
+		check whether it is there, it can be convenient to use objects:</p>
+		
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// empty object
+let empty = {}
+
+// object with key-value pairs
+let obj = {
+	name : "Jane Doe",
+	age : 10,
+	favorite-fruits : [ "bananas", "apples" ]
+}</code>
+</code></pre>				
+		
+		<p>Access elements by key:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let obj = {
+	name : "Jane Doe",
+	age : 10,
+	favorite-fruits : [ "bananas", "apples" ]
+}
+obj["name"]
+//returns "Jane Doe"</code>
+</code></pre>	
+		
+		<p>Add or remove an element:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">let obj = {}
+
+obj["newKey"] = "some value"
+
+obj["secondKey"] = 2
+
+delete obj["newKey"]</code>
+</code></pre>
+
+		<p>List all keys:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// object with key-value pairs
+let obj = {
+	name : "Jane Doe",
+	age : 10,
+	favorite-fruits : [ "bananas", "apples" ]
+}
+
+Object.keys( obj )
+// ["name","age","favorite-fruits"]</code>
+</code></pre>
+
+<p>Check if key exists:</p>
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// object with key-value pairs
+let obj = {
+	name : "Jane Doe",
+	age : 10,
+	favorite-fruits : [ "bananas", "apples" ]
+}
+
+obj.hasOwnProperty( "age") // true
+obj.hasOwnProperty( "favorite-color" ) // false</code>
+</code></pre>
+
+
+		<p>Note that the same note on pointers applies here as for arrays.</p>
+		
+
+
+		<h4>Loops, functions, if-else</h4>
+		
+		
+		<p>Some examples that speak for themselves:</p>
+
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// a loop
+for( let i = 0; i < 5; i++ ){
+	console.log(i)
+}</code>
+</code></pre>
+
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// a function
+function myFunction( arg1, arg2 ){
+	const answer = arg1 + arg2
+	return answer
+}</code>
+</code></pre>
+
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// if-statement one-liner
+if( true ) console.log( "Hello World!")
+
+// more lines or with an else
+const a = 1
+const b = 1
+if( a == b ){
+	console.log( "a and b are equal: " + a )
+} else {
+	console.log( "a and b are different!" )
+}
+</code>
+</code></pre>
+
+		<p>Looping over arrays:</p>
+		
+<pre><code class="lang-$xslt"><code class="source-code prettyprint">// option 1
+const arr = [ "Apples", "Pears", "Bananas" ]
+for( let i = 0; i < arr.length; i++ ){
+	console.log( arr[i] )
+}
+
+// shorthand
+for( let i in arr ){
+	console.log( arr[i] )
+}
+
+// even shorter hand
+for( let el of arr ){
+	console.log( el )
+}</code>
+</code></pre>
+
+
+		<p>Looping over objects:</p>
+
+<p><pre><code class="lang-$xslt"><code class="source-code prettyprint">// option 1
+const obj = { apples: 0, pears: 5, bananas : 1 }
+for( let i = 0; i < Object.keys( obj ).length; i++ ){
+	const key = Object.keys( obj )[i]
+	console.log( obj[key] )
+}
+
+// shorthand
+for( let i in arr ){
+	console.log( i, obj[i] )
+}
+
+// this does not work
+for( let el of obj ){
+	console.log( el )
+}</code>
+</code></pre></p>
+
+      
+      </div>
+      
+
+   </main>
+  </div>
+</div>
+
+<script src="./pretty-print.js"></script>
+
+
+
+</body>
+</html>
+
+

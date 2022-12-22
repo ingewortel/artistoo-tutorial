@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// declare variables; the variable 'running' can be changed by one of the buttons 
+// defined in the html code below. If running = false, no new MCSs are performed until
+// it is set to true again.
+let C, Cim, gm, meter, running = true
+
+// This is the same as before
+function initialize(){
+
+	const fs = [200,200]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 20
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+
+// same as before
+function setup( field_size, configuration_options ){
+
+	// same as in the last example
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,20], [20,100]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,500] } ) )
+	C.add( new CPM.PerimeterConstraint( { LAMBDA_P : [0,2], P : [0,260] } ) )
+	C.add( new CPM.ActivityConstraint( {
+		LAMBDA_ACT : [0,500],
+		MAX_ACT : [0,30],
+		ACT_MEAN : "geometric"
+	} ) )
+	Cim = new CPM.Canvas( C, { zoom : 2 } )
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	// let's seed two cells this time (but both of the same 'kind').
+	const ncell = 2
+	for( let i = 0; i < ncell; i++ ){
+		gm.seedCell( 1 )
+	}
+}
+
+function divideCell(){
+	gm.divideCellTorus(1)
+}
+
+function draw(){
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	if( document.getElementById("drawActivity").checked ) Cim.drawActivityValues( 1 )
+}
+
+
+// same as before
+function step(){
+	if( running ){
+		C.timeStep() 	
+		draw() 			
+		meter.tick()	
+	}
+	requestAnimationFrame( step )
+}
+
+function toggleRunning(){
+	running = !running
+}
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ 	<h1>Interactive HTML</h1>
+ 	<p>Let's add some controllers.</p><br>
+ 
+	<div>
+	  <input type="checkbox" id="drawActivity" name="drawActivity" checked>
+	  <label for="drawActivity">Show activity gradient</label> 
+	  
+	  <button id="playpause" onclick="toggleRunning()">Play/pause</button> 
+	  <button id="division" onclick="divideCell()">divide cell</button> 
+	  <br><br>
+	  
+	  <input type="text" id="cellColor" name = "cellColor" value="000000"> </input>
+	  <label for="cellColor">Cell color (hex code)</label> <br><br>
+	  
+	  <input type="range" min="0" max = "1000" id = "lact" name="lact"
+	  	value = "C.getConstraint('ActivityConstraint').conf.LAMBDA_ACT[1]"
+	  	oninput="C.getConstraint('ActivityConstraint').conf.LAMBDA_ACT[1]=this.value;document.getElementById('lactValue').innerHTML=this.value"
+	  > </input>
+	  <label for="lact">&lambda;<sub>act</sub>: <span id = "lactValue">500</span></label><br><br>
+	  
+	</div>
+</body>
+</html>

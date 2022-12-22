@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>ActModel</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./artistoo.js"></script>
+<script src="./fpsmeter.min.js"></script>
+<script>
+"use strict"
+
+
+// before we start, define our new constraint
+class ActiveAdhesionConstraint extends CPM.ActivityConstraint {
+
+	constructor( conf ){
+		super( conf )
+		
+		this.adhesionsByCell = {}
+		this.adhesionLocations = {}
+		
+	}
+	
+	preFactor( cellID ){
+		const b = this.cellParameter( "b", cellID )
+		const s = this.cellParameter( "s", cellID )
+		const n = this.adhesionsByCell[cellID] || 0
+		const fracAdhesion = n / this.C.getVolume( cellID )
+		if( fracAdhesion > s || s == 0 ){
+			return 1
+		}
+		return fracAdhesion * ( b + (1-b)/s )
+	}
+	
+	spawnAdhesion( i ){
+		const cid = this.C.pixti( i )
+		if( !this.adhesionsByCell.hasOwnProperty( cid ) ) this.adhesionsByCell[cid] = 0
+				
+		
+		this.adhesionsByCell[cid] ++
+		this.adhesionLocations[i] = true
+		
+	}
+	
+	deleteAdhesion(i, cid){
+		if( --this.adhesionsByCell[cid] == 0 ){
+			delete this.adhesionsByCell[cid]
+		}
+		delete this.adhesionLocations[i]
+	}
+	
+	adhesionSpawnAttempt(i){
+	
+		// don't do anything if an adhesion already exists
+		if( this.adhesionLocations.hasOwnProperty(i) ) return
+		
+		// check the cell at this pos.
+		const cellID = this.C.pixti( i )
+		const ps = this.cellParameter( "ps", cellID )
+		if( this.C.random() < ps ){
+			//console.log("spawn")
+			this.spawnAdhesion( i )
+		}		
+		
+	}
+	
+	randomNeighbor(i){
+		const Nbh = this.C.grid.neighi( i )
+		return Nbh[Math.floor(this.C.random() * Nbh.length)]
+	}
+	
+	growAdhesions(){
+		for( let i of Object.keys( this.adhesionLocations ) ){
+			const n = this.randomNeighbor(i)
+			const cid = this.C.pixti(i)
+			const pe = this.cellParameter( "pe", cid )
+			// only allow growth into neighbor of the same cell
+			if( this.C.pixti(n) == this.C.pixti(i) ){
+				// spawn with prob pe if no adhesion yet
+				if( !this.adhesionLocations.hasOwnProperty( n ) && this.C.random() < pe ){
+					this.spawnAdhesion(n)
+				}
+			}
+		}
+	}
+	
+	unbindAdhesions(){
+		for( let i of Object.keys( this.adhesionLocations ) ){
+			
+			const Nbh = this.C.grid.neighi(i)			
+			const cid = this.C.pixti(i)
+			const pd = this.cellParameter( "pd", cid )
+			
+			// count fraction of the neighborhood (within the same cell)
+			// that has no adhesions
+			let tot = 0, count = 0
+			for( let n of Nbh ){
+				if( this.C.pixti(n) == cid ){
+					tot++
+					if( !this.adhesionLocations.hasOwnProperty(n) ) count++
+				}
+			}
+			
+			// detach prob is zero if all neighbors are adhered (center cannot detach spontaneously)
+			if( tot > 0 ){
+				// else detach with prob
+				const prob = pd * (count/tot)
+				if( this.C.random() < prob ) this.deleteAdhesion( i, cid )
+			}
+			
+			
+		}
+	}
+	
+	// Extend (not overwrite!) postMCS listener and postsetpixlistener of the Actmodel.
+	postSetpixListener( i, t_old, t ){
+		// After setting a pixel, it gets the MAX_ACT value of its cellkind.
+		this.cellpixelsact[i] = this.cellParameter("MAX_ACT", t)
+		
+		// if this position had an adhesion, this will be deleted
+		if( this.adhesionLocations.hasOwnProperty(i) ){
+			this.deleteAdhesion(i,t_old)
+		}
+	}
+	postMCSListener(){
+		// iterate over cellpixelsage and decrease all activities by one.
+		for( let key in this.cellpixelsact ){
+			
+			// activities that reach zero no longer need to be stored.
+			if( --this.cellpixelsact[ key ] <= 0 ){
+				delete this.cellpixelsact[ key ]
+			}
+			
+			// activities >= 0.75*MaxAct may spawn an adhesion; use activityAt because
+			// we want local activities as in geometric mean.
+			const cid = this.C.pixti(key)
+			if( this.activityAt(key) >= 0.75 * this.cellParameter( "MAX_ACT", cid ) ){
+				this.adhesionSpawnAttempt( key )
+			}
+		}
+		
+		// grow adhesions (eden growth)
+		this.growAdhesions()
+		
+		// stochastic detachment of adhesions
+		this.unbindAdhesions()
+		
+	}
+
+	deltaHAct ( sourcei, targeti, src_type, tgt_type ){
+ 
+		let deltaH = 0, maxact, lambdaact, f
+ 
+		// use parameters for the source cell, unless that is the background.
+		// In that case, use parameters of the target cell.
+		if( src_type != 0 ){
+			maxact = this.cellParameter("MAX_ACT", src_type)
+			lambdaact = this.cellParameter("LAMBDA_ACT", src_type)
+			f = this.preFactor( src_type )
+		} else {
+			// special case: punishment for a copy attempt from background into
+			// an active cell. This effectively means that the active cell retracts,
+			// which is different from one cell pushing into another (active) cell.
+			maxact = this.cellParameter("MAX_ACT", tgt_type)
+			lambdaact = this.cellParameter("LAMBDA_ACT", tgt_type)
+			f = this.preFactor( tgt_type )
+		}
+		if( !maxact || !lambdaact ){
+			return 0
+		}
+ 
+		// compute the Hamiltonian. The activityAt method is a wrapper for either activityAtArith
+		// or activityAtGeom, depending on conf (see constructor).	
+		deltaH += f*lambdaact*(this.activityAt( targeti ) - this.activityAt( sourcei ))/maxact
+		return deltaH
+	}
+	
+	deltaHAdh ( sourcei, targeti, src_type, tgt_type ){
+		if( this.adhesionLocations.hasOwnProperty( targeti ) ) {
+			return this.cellParameter( "LAMBDA_ADH", tgt_type )
+		}
+		return 0
+	}
+	
+	deltaH ( sourcei, targeti, src_type, tgt_type ){
+		const dH = this.deltaHAct( sourcei, targeti, src_type, tgt_type ) + this.deltaHAdh( sourcei, targeti, src_type, tgt_type )
+		//console.log( dH )
+		return dH
+	}
+
+}
+
+
+// declare variables
+let C, Cim, gm, meter
+
+
+function initialize(){
+
+	const fs = [100,100]
+	let conf = {
+		torus : [true,true],
+		seed : 1,
+		T : 30
+	}
+	setup( fs, conf )
+	seedCell()
+	step()
+}
+
+
+
+function setup( field_size, configuration_options ){
+
+	// same as in the last example
+	C = new CPM.CPM( field_size, configuration_options )
+	C.add( new CPM.Adhesion( { J: [[0,35], [35,0]] } ) )
+	C.add( new CPM.VolumeConstraint( { LAMBDA_V : [0,50], V : [0,1000] } ) )
+	C.add( new CPM.PerimeterConstraint( { LAMBDA_P : [0,4], P : [0,350] } ) )
+	C.add( new ActiveAdhesionConstraint( { 
+		LAMBDA_ACT : [0,240],				// ActivityConstraint importance per cellkind
+		MAX_ACT : [0,120],					// Activity memory duration per cellkind
+		ACT_MEAN : "geometric",				// Is neighborhood activity computed as a
+											// "geometric" or "arithmetic" mean?
+		LAMBDA_ADH : [0,20],
+		ps : [0,0.004], // 0.004
+		pd : [0,0.0008],
+		pe : [0,0.0055],
+		b : [0,1],
+		s : [0,0]
+	} ) )
+
+	// Our field is a bit bigger so let's reduce the zoom.
+	Cim = new CPM.Canvas( C, { zoom : 4 } )
+	
+	// Nothing new here:
+	gm = new CPM.GridManipulator( C )
+	meter = new FPSMeter({left:"auto", right:"5px"})
+}
+
+function seedCell(){
+	gm.seedCell( 1 )
+}
+
+
+function draw(){
+	Cim.clear("fafafa")
+	Cim.drawCells( 1, "000000" )
+	Cim.drawActivityValues(1)
+	
+	
+	// draw adhesions
+	const loc = C.getConstraint("ActiveAdhesionConstraint").adhesionLocations
+	const locP = Object.keys( loc ).map(x => C.grid.i2p(x)) // index coordinates to array coords.
+	Cim.drawPixelSet( locP, "0000ff" )
+	
+	/*Cim.col("000000")
+	Cim.ctx.globalAlpha = 0.5
+	for( let p of locP ){
+		this.Cim.pxf( p )
+	}
+	Cim.ctx.globalAlpha = 1*/
+}
+
+
+
+
+// This function has not changed from the last example.
+function step(){
+	C.timeStep() 	
+	draw() 			
+	meter.tick()	
+	requestAnimationFrame( step )
+}
+
+
+
+</script>
+</head>
+<body onload="initialize()">
+ 
+ <h1>Motility with adhesions</h1>
+ <p>Based on <a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1009156">Van Steijn et al </a>.</p> 
+</body>
+</html>
