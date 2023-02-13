@@ -53,7 +53,7 @@ class HiddenFigures extends CPM.HardConstraint {
 		
 		// allow "outward" copy attempts (i.e. where source = cell, target = background) 
 		// only when target pixel is inside a circle of this radius around the grid midpoint.
-		if( this.withinCircle( tgt_i, radius ) ) return true
+		if( this.withinCircle( tgt_i, this.radius ) ) return true
 		
 		return false
 	}
